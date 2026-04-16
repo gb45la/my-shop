@@ -10,7 +10,6 @@ let db;
 async function initDB() {
     db = await open({ filename: './database.sqlite', driver: sqlite3.Database });
     
-    // 建立客戶資料表
     await db.exec(`
         CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +19,6 @@ async function initDB() {
         )
     `);
 
-    // 建立商品資料表
     await db.exec(`
         CREATE TABLE IF NOT EXISTS Products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,8 +35,6 @@ initDB();
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 app.get('/login', (req, res) => res.sendFile(__dirname + '/login.html'));
 app.get('/admin', (req, res) => res.sendFile(__dirname + '/admin.html'));
-
-// 【這是剛加入的新路線】
 app.get('/cart', (req, res) => res.sendFile(__dirname + '/cart.html'));
 
 // --- 客戶 API (註冊與登入) ---
@@ -71,16 +67,10 @@ app.post('/api/login', async (req, res) => {
 // --- 商品 API (上架功能) ---
 app.post('/api/products', async (req, res) => {
     const { name, price, imageUrl } = req.body;
-    
-    if (!name || !price) {
-        return res.status(400).json({ error: '必須填寫商品名稱和價格！' });
-    }
+    if (!name || !price) return res.status(400).json({ error: '必須填寫商品名稱和價格！' });
 
     try {
-        await db.run(
-            'INSERT INTO Products (name, price, image_url) VALUES (?, ?, ?)', 
-            [name, price, imageUrl]
-        );
+        await db.run('INSERT INTO Products (name, price, image_url) VALUES (?, ?, ?)', [name, price, imageUrl]);
         console.log(`📦 新商品上架成功：${name} (NT$ ${price})`);
         res.status(201).json({ message: '商品上架成功！' });
     } catch (error) {
@@ -88,13 +78,25 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// --- 商品 API (讓首頁讀取所有商品) ---
+// --- 商品 API (讀取所有商品) ---
 app.get('/api/products', async (req, res) => {
     try {
         const products = await db.all('SELECT * FROM Products');
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ error: '無法讀取商品資料' });
+    }
+});
+
+// --- 【新增】商品 API (刪除功能) ---
+app.delete('/api/products/:id', async (req, res) => {
+    const productId = req.params.id;
+    try {
+        await db.run('DELETE FROM Products WHERE id = ?', [productId]);
+        console.log(`🗑️ 已從資料庫刪除商品 ID: ${productId}`);
+        res.status(200).json({ message: '商品已成功刪除！' });
+    } catch (error) {
+        res.status(500).json({ error: '刪除商品失敗' });
     }
 });
 

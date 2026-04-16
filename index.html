@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YcBake - 烘焙原料專賣</title>
+    <title>UCROWN - 烘焙原料專賣</title>
     <style>
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background-color: #f9f9f9; color: #333; }
         .sidebar { width: 250px; background: white; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; }
@@ -15,22 +15,44 @@
         .menu a:hover { background-color: #f4f4f4; color: #11998e; }
         .login-btn { color: #888 !important; font-weight: normal !important; }
         
-        /* 購物車特別標示 */
         .cart-link { background-color: #fef9e7; color: #d35400 !important; }
         .cart-link:hover { background-color: #fdebd0 !important; }
         .cart-badge { background-color: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px; }
 
         .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
-        .header-logo { text-align: center; margin-bottom: 30px; font-size: 28px; font-weight: bold; color: #444; }
-        .product-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+        .header-logo { text-align: center; margin-bottom: 20px; font-size: 28px; font-weight: bold; color: #444; }
         
+        /* --- 【修改】輪播看板的樣式 --- */
+        .banner-container { 
+            width: 100%; 
+            height: 250px; /* 固定高度 */
+            margin-bottom: 30px; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            background-color: #ffeaa7; 
+            position: relative; /* 讓裡面的圖片可以疊在一起 */
+        }
+        .banner-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            opacity: 0; /* 預設全部隱藏 */
+            transition: opacity 1s ease-in-out; /* 1秒的淡入淡出動畫 */
+        }
+        .banner-img.active {
+            opacity: 1; /* 只有加了 active 的圖片才會顯示 */
+        }
+
+        .product-grid { display: flex; gap: 20px; flex-wrap: wrap; }
         .product-card { background: white; padding: 15px; border: 1px solid #eee; width: 220px; text-align: center; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; flex-direction: column; }
         .product-card:hover { transform: translateY(-5px); }
         .product-image { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 15px; background-color: #f0f0f0; }
         .product-title { margin: 10px 0; font-size: 18px; color: #333; }
         .product-price { color: #e74c3c; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
-        
-        /* 加入購物車按鈕的美化 */
         .add-to-cart-btn { background-color: #11998e; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; margin-top: auto; transition: background 0.3s; }
         .add-to-cart-btn:hover { background-color: #0e8379; }
     </style>
@@ -49,13 +71,36 @@
     </div>
 
     <div class="main-content">
-        <div class="header-logo">YcBake</div>
+        <div class="header-logo">UCROWN 烘焙商城</div>
+        
+        <div class="banner-container">
+            <img src="https://picsum.photos/id/1080/1200/250" alt="歡慶開幕" class="banner-img active">
+            <img src="https://picsum.photos/id/1025/1200/250" alt="新品上市" class="banner-img">
+            <img src="https://picsum.photos/id/1060/1200/250" alt="會員優惠" class="banner-img">
+        </div>
+
+        <h2 style="border-left: 4px solid #11998e; padding-left: 10px; color: #333;">🔥 最新上架</h2>
         <div class="product-grid" id="product-list">
             <p style="color: #888;">正在載入商品中...</p>
         </div>
     </div>
 
     <script>
+        // --- 【新增】輪播圖自動切換的魔法 ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.banner-img');
+        
+        // 設定每 3 秒 (3000毫秒) 執行一次切換
+        setInterval(() => {
+            // 先把目前的圖片隱藏
+            slides[currentSlide].classList.remove('active');
+            // 計算下一張圖片的號碼 (如果到最後一張，就回到第一張)
+            currentSlide = (currentSlide + 1) % slides.length;
+            // 把下一張圖片顯示出來
+            slides[currentSlide].classList.add('active');
+        }, 3000); 
+        // ------------------------------------
+
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
         function updateCartCount() {
