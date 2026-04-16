@@ -10,7 +10,7 @@ let db;
 async function initDB() {
     db = await open({ filename: './database.sqlite', driver: sqlite3.Database });
     
-    // 建立客戶資料表 (之前寫好的)
+    // 建立客戶資料表
     await db.exec(`
         CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +20,7 @@ async function initDB() {
         )
     `);
 
-    // 【新增】建立商品資料表 (Products)
+    // 建立商品資料表
     await db.exec(`
         CREATE TABLE IF NOT EXISTS Products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,9 +36,10 @@ initDB();
 // --- 網頁路線 ---
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 app.get('/login', (req, res) => res.sendFile(__dirname + '/login.html'));
-
-// 【新增】後台管理網頁路線 (http://localhost:3000/admin)
 app.get('/admin', (req, res) => res.sendFile(__dirname + '/admin.html'));
+
+// 【這是剛加入的新路線】
+app.get('/cart', (req, res) => res.sendFile(__dirname + '/cart.html'));
 
 // --- 客戶 API (註冊與登入) ---
 app.post('/api/register', async (req, res) => {
@@ -67,7 +68,7 @@ app.post('/api/login', async (req, res) => {
     } catch (error) { res.status(500).json({ error: '伺服器錯誤' }); }
 });
 
-// --- 【新增】商品 API (上架功能) ---
+// --- 商品 API (上架功能) ---
 app.post('/api/products', async (req, res) => {
     const { name, price, imageUrl } = req.body;
     
@@ -76,7 +77,6 @@ app.post('/api/products', async (req, res) => {
     }
 
     try {
-        // 將商品存入 SQL 資料庫
         await db.run(
             'INSERT INTO Products (name, price, image_url) VALUES (?, ?, ?)', 
             [name, price, imageUrl]
@@ -87,16 +87,17 @@ app.post('/api/products', async (req, res) => {
         res.status(500).json({ error: '寫入資料庫失敗' });
     }
 });
-// --- 【新增】商品 API (讓首頁讀取所有商品) ---
+
+// --- 商品 API (讓首頁讀取所有商品) ---
 app.get('/api/products', async (req, res) => {
     try {
-        // 從 Products 資料表抓出所有商品資料
         const products = await db.all('SELECT * FROM Products');
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ error: '無法讀取商品資料' });
     }
 });
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 伺服器啟動！請前往 http://localhost:${PORT}`);

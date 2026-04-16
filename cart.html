@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YcBake - 我的購物車</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background-color: #f9f9f9; color: #333; }
+        .sidebar { width: 250px; background: white; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; }
+        .menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; display: flex; flex-direction: column; }
+        .menu li { border-bottom: 1px solid #f0f0f0; }
+        .menu a { display: block; padding: 15px 20px; text-decoration: none; color: #555; font-size: 15px; font-weight: bold; transition: 0.3s; }
+        .menu a:hover { background-color: #f4f4f4; color: #11998e; }
+        .cart-link { background-color: #fef9e7; color: #d35400 !important; }
+
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        .cart-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 800px; margin: 0 auto; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-top: 0; color: #2c3e50; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed #ccc; }
+        .item-info { flex-grow: 1; font-size: 18px; font-weight: bold; }
+        .item-price { width: 100px; color: #e74c3c; font-weight: bold; }
+        .item-qty { width: 80px; }
+        .item-subtotal { width: 100px; text-align: right; font-weight: bold; color: #2980b9; }
+        .remove-btn { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .remove-btn:hover { background: #c0392b; }
+
+        .cart-summary { margin-top: 30px; text-align: right; font-size: 20px; }
+        .total-price { color: #e74c3c; font-size: 28px; font-weight: bold; }
+        .checkout-btn { background-color: #27ae60; color: white; border: none; padding: 15px 30px; border-radius: 4px; cursor: pointer; font-size: 18px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .checkout-btn:hover { background-color: #2196f3; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="text-align: center; padding: 20px 0; margin: 0; border-bottom: 1px solid #eee; color: #444;">YcBake</h2>
+        <ul class="menu">
+            <li><a href="/">🏠 回到首頁繼續購物</a></li>
+            <li><a href="/cart" class="cart-link">🛒 我的購物車</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="cart-container">
+            <h2>🛒 結帳明細</h2>
+            <div id="cart-items-list">
+                </div>
+            
+            <div class="cart-summary">
+                <p>總計金額： <span class="total-price" id="total-price">NT$ 0</span></p>
+                <button class="checkout-btn" onclick="checkout()">確認結帳</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 從隱形小背包把商品拿出來
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // 2. 把商品畫到網頁上的功能
+        function renderCart() {
+            const listEl = document.getElementById('cart-items-list');
+            const totalEl = document.getElementById('total-price');
+            listEl.innerHTML = ''; // 先清空畫面
+
+            if (cart.length === 0) {
+                listEl.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">購物車空空如也，趕快去逛逛吧！</p>';
+                totalEl.textContent = 'NT$ 0';
+                return;
+            }
+
+            let grandTotal = 0;
+
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                grandTotal += subtotal;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item';
+                itemDiv.innerHTML = `
+                    <div class="item-info">${item.name}</div>
+                    <div class="item-price">NT$ ${item.price}</div>
+                    <div class="item-qty">x ${item.quantity}</div>
+                    <div class="item-subtotal">NT$ ${subtotal}</div>
+                    <button class="remove-btn" onclick="removeItem(${index})">刪除</button>
+                `;
+                listEl.appendChild(itemDiv);
+            });
+
+            totalEl.textContent = `NT$ ${grandTotal}`;
+        }
+
+        // 3. 刪除單一商品的功能
+        function removeItem(index) {
+            cart.splice(index, 1); // 從陣列中移除該商品
+            localStorage.setItem('cart', JSON.stringify(cart)); // 更新背包
+            renderCart(); // 重新畫畫面
+        }
+
+        // 4. 結帳功能
+        function checkout() {
+            if (cart.length === 0) {
+                alert('購物車沒有商品喔！');
+                return;
+            }
+            alert('🎉 結帳成功！感謝您的購買！商品準備為您出貨！');
+            localStorage.removeItem('cart'); // 清空背包
+            cart = [];
+            renderCart(); // 重新畫畫面
+        }
+
+        // 網頁打開時，立刻執行畫畫面的功能
+        renderCart();
+    </script>
+</body>
+</html>
