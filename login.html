@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的現代化電商平台</title>
+    <style>
+        /* 1. 全局設定：套用好看的字體與漸層背景 */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; /* 讓畫面垂直置中 */
+            margin: 0; 
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: #333;
+        }
+
+        /* 2. 排版容器：讓註冊和登入並排，並加上間距 */
+        .container {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap; /* 螢幕變小時會自動往下掉 */
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 3. 卡片設計：加上白色背景、圓角和柔和的陰影 */
+        .form-box { 
+            background: white; 
+            padding: 40px 30px; 
+            width: 320px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); 
+            transition: transform 0.3s ease;
+        }
+        
+        /* 滑鼠移過去時，卡片會微微浮起來 */
+        .form-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .form-box h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 24px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        /* 4. 輸入框美化 */
+        input { 
+            display: block; 
+            width: 100%; 
+            box-sizing: border-box; /* 確保 padding 不會撐破寬度 */
+            margin-bottom: 20px; 
+            padding: 12px 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        /* 當點擊輸入框時的亮起效果 */
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+        }
+
+        /* 5. 按鈕美化：加上漂亮的漸層色和點擊動畫 */
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            color: white; 
+            transition: all 0.3s ease;
+        }
+
+        /* 註冊按鈕：綠色漸層 */
+        .btn-register { background: linear-gradient(to right, #11998e, #38ef7d); }
+        .btn-register:hover { box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4); transform: scale(1.02); }
+
+        /* 登入按鈕：藍色漸層 */
+        .btn-login { background: linear-gradient(to right, #2980b9, #6dd5fa); }
+        .btn-login:hover { box-shadow: 0 5px 15px rgba(109, 213, 250, 0.4); transform: scale(1.02); }
+
+        /* 6. 訊息提示文字置中 */
+        .msg { 
+            font-weight: bold; 
+            margin-top: 15px; 
+            text-align: center;
+            min-height: 20px; 
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-box">
+            <h2>✨ 建立新帳號</h2>
+            <form id="registerForm">
+                <input type="text" id="reg-username" placeholder="請輸入使用者名稱" required>
+                <input type="email" id="reg-email" placeholder="請輸入 Email 信箱" required>
+                <input type="password" id="reg-password" placeholder="請設定一組密碼" required>
+                <button type="submit" class="btn-register">立即註冊</button>
+            </form>
+            <p id="reg-message" class="msg"></p>
+        </div>
+
+        <div class="form-box">
+            <h2>👋 會員登入</h2>
+            <form id="loginForm">
+                <input type="email" id="login-email" placeholder="請輸入 Email 信箱" required>
+                <input type="password" id="login-password" placeholder="請輸入密碼" required>
+                <button type="submit" class="btn-login">安全登入</button>
+            </form>
+            <p id="login-message" class="msg"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const msgEl = document.getElementById('reg-message');
+
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            const data = await res.json();
+            msgEl.style.color = res.ok ? '#11998e' : '#e74c3c';
+            msgEl.textContent = data.message || data.error;
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const msgEl = document.getElementById('login-message');
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            msgEl.style.color = res.ok ? '#2980b9' : '#e74c3c';
+            msgEl.textContent = data.message || data.error;
+        });
+    </script>
+</body>
+</html>
